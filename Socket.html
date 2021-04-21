@@ -1,0 +1,149 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>ZIM - Socket Avatar</title>
+
+<!-- Welcome to ZIM at https://zimjs.com - Code Creativity!                              -->
+<!-- ZIM runs on the HTML Canvas powered by JavaScript and CreateJS https://createjs.com -->
+<!-- ZIM is free to use. You can donate to help improve ZIM at https://zimjs.com/donate  -->
+
+<script src="https://zimjs.org/cdn/1.3.2/createjs.js"></script>
+<script src="https://zimjs.org/cdn/cat/03/zim.js"></script>
+<!-- use zimjs.com/distill for minified individual functions! -->
+
+<script src="https://zimjs.org/cdn/2.3.0/socket.io.js"></script>
+<script src="https://zimjs.org/cdn/zimserver_urls.js"></script>
+<script src="https://zimjs.org/cdn/zimsocket_1.1.js"></script>
+
+<script>
+
+// SCALING OPTIONS
+// scaling can have values as follows with full being the default
+// "fit"    sets canvas and stage to dimensions and scales to fit inside window size
+// "outside"    sets canvas and stage to dimensions and scales to fit outside window size
+// "full"    sets stage to window size with no scaling
+// "tagID"    add canvas to HTML tag of ID - set to dimensions if provided - no scaling
+
+const scaling = "fit"; // this will resize to fit inside the screen dimensions
+const width = 1024;
+const height = 768;
+const color = light; // ZIM colors like green, blue, pink, faint, clear, etc.
+const outerColor = dark; // any HTML colors like "violet", "#333", etc. are fine to use
+
+const frame = new Frame(scaling, width, height, color, outerColor);
+frame.on("ready", () => { // ES6 Arrow Function - like function(){}
+    zog("ready from ZIM Frame"); // logs in console (F12 - choose console)
+
+    const stage = frame.stage;
+    let stageW = frame.width;
+    let stageH = frame.height;
+
+    // see https://zimjs.com/learn.html for video and code tutorials
+    // see https://zimjs.com/docs.html for documentation
+    // see https://zimjs.com/bits.html for 64 Interactive Media techniques
+
+    // *** NOTE: ZIM Cat defaults to time in seconds
+    // All previous versions, examples, videos, etc. have time in milliseconds
+    // This can be set back with TIME = "milliseconds" but we suggest you give it a try!
+    // There will be a warning in the conslole if your animation is not moving ;-)
+
+    // put your code here (you can delete this sample code)
+
+    // zog(zimSocketURL)
+
+    const socket = new Socket(zimSocketURL, "ic21avatar");
+
+    socket.on("ready", data=>{
+        zogg("socket is ready");
+
+        zogr(data)
+
+        // data = {
+        //     aafsdasidfiu:{x:100, y:100, level:7, color:red, id:aafsdasidfiu},
+        //     qsdfdfewr44s:{}
+        // }
+
+        const avatars = {};
+        // avatars.a = 10;
+        // avatars["a"] = 10;
+
+        // avatars = {
+        //     aafsdasidfiu:new Circle(),
+        //     qsdfdfewr44s:new Circle()
+        // }
+
+
+        // add existing avatars
+        loop(data, (id, props)=>{
+            // add avatar
+            avatars[id] = new Circle(50, props.color).loc(props.x, props.y).noMouse();
+        });
+        // set the levels
+        loop(data, (id, props)=>{
+            avatars[id].level = props.level;
+        });
+
+
+
+        // set a single property
+        // socket.setProperty("name", "Dan Zen (Original)")
+
+        const ball = new Circle(50, [pink, blue, green, red, orange, purple, grey], dark, 2).center().drag();
+
+        // tell others about our avatar
+        socket.setProperties({
+            name:"Dan Zen (original)",
+            color:ball.color,
+            x:ball.x,
+            y:ball.y,
+            level:ball.level
+        });
+
+
+        ball.on("pressmove", () => {
+            socket.setProperties({
+                x:Math.round(ball.x),
+                y:Math.round(ball.y)
+            });
+        });
+
+        socket.on("data", data=>{
+            if (avatars[data.id]) {
+                // {id:aafsdasidfiu, x:100, y:100, level:7, color:red}
+                // move their ball - not our ball
+                if (data.x != null) avatars[data.id].x = data.x;
+                if (data.y != null) avatars[data.id].y = data.y;
+                if (data.level != null) avatars[data.id].level = data.level;
+            } else { // we are new and we want to add avatar
+                // add avatar
+                avatars[data.id] = new Circle(50, data.color).loc(data.x, data.y).noMouse();
+            }
+            stage.update();
+        });
+
+        socket.on("otherleave", data => {
+            // avatars[data.id].removeFrom();
+            avatars[data.id].dispose(); // removes and clears from memory
+            delete avatars[data.id]; // js to delete property from object
+            stage.update();
+        });
+
+
+        stage.update();
+    });
+
+
+
+}); // end of ready
+
+</script>
+
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+
+</head>
+
+<body>
+<!-- canvas with id="myCanvas" is made by zim Frame -->
+</body>
+</html>
