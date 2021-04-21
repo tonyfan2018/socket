@@ -84,7 +84,110 @@ frame.on("ready", () => { // ES6 Arrow Function - like function(){}
         });
 
 
+        const pane = new Pane({width:600, height:250, modal:false, displayClose:false});
+	  // var cancel = new Button(220, 100, "CANCEL", "red").center(pane).mov(-130);
+	  const confirm = new Button(220, 100, "START", "green").center(pane);
+	  // cancel.on("click", function() {pane.hide();});
+	  confirm.on("click", function() {
+	     pane.hide();
+	     game();
+	  });
 
+	  pane.show();
+
+
+		function game(){
+
+
+			const playerOne = new Rectangle(50, 30, green).rot(90).centerReg();
+			const controller = new MotionController({
+			   target:playerOne,
+			   type:"keydown",
+			   diagonal:true,
+			   damp:.1,
+			   rotate:false
+			});
+
+ 			const bullet = new Circle(20, blue);
+
+			frame.on("keydown", e => {
+			// zog(e.keyCode);
+			if (e.keyCode == 32) { // spacebar
+
+				bullet.loc(playerOne.x, playerOne.y);
+				bullet.animate({
+				props:{y:-stageW},
+				time:.5,
+				ease:"easeIn",
+				call:()=>{
+						bullet.removeFrom();
+				}
+			 })
+			}
+		});//keydown Function
+
+		const xRandNum = [20,760,20,70];
+		const yRandNum = [550,20,20,600];
+
+	const firstinterTime = interval(1, ()=>{
+
+				const viruses = new Circle(30,red)
+					  .loc(rand(stageW-(100,200)), rand(stageH-(100,200))
+				  );
+
+				const speed = .0001;
+				const dampX = new Damp(viruses.x, speed);
+				const dampY = new Damp(viruses.y, speed);
+
+
+				const interTime = interval(.01, ()=>{
+
+						Ticker.add(()=>{
+						  viruses.loc(dampX.convert(playerOne.x), dampY.convert(playerOne.y));
+
+	             		});//Ticker
+
+
+						  if (viruses.hitTestBounds(playerOne)) {
+
+								  playerOne.removeFrom();
+								  bullet.alp(0);
+								  viruses.sca(2);
+								  interTime.clear();
+
+								  firstinterTime.clear();
+								  stage.update();
+
+							   }
+
+
+						if(bullet.hitTestBounds(viruses)){
+
+
+								   viruses.removeFrom();
+								   viruses.animate({
+									   props:{scale:0,alpha:0},
+									   time:.2,
+									   ease:"bounceOutIn"
+								   });
+								  interTime.clear();
+
+								   stage.update();
+
+
+							   }
+
+						   });//second intertime\
+
+
+				  }); //first intertime
+
+
+
+
+
+
+   }//game start;
         // set a single property
         // socket.setProperty("name", "Dan Zen (Original)")
 
